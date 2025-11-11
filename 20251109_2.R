@@ -6,7 +6,8 @@ data_1 <- read_excel("data/data_1.xlsx",
 View(data_1)
 
 data <- data_1[11:19]
-Result <- prcomp(data, scale = FALSE)	# 分散共分散行列による主成分分析を実行し，結果をResultに格納
+
+Result <- prcomp(data, scale = TRUE)	# 相関係数行列による主成分分析を実行し，結果をResultに格納
 Result		# 各主成分の固有値のルート(=相関係数)と，各主成分係数(Rotation)の表示
 Result$sdev^2	# 固有値の計算
 summary(Result)		# 寄与率(Proportion of Variance)，累積寄与率の表示
