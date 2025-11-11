@@ -16,11 +16,14 @@ activity_cols <- c("Side_Job", "Housework_Childcare", "Study",
 
 # 目的変数（スマホゲーム: 0/1）の変数名
 target_col <- "Play_SP_Game"
+target_col2 <- "Play_Console"
 
 # 主成分分析に使用するデータフレーム (説明変数X)
 X <- data_1[, activity_cols]
 # 目的変数Y
 Y <- data_1[[target_col]]
+# 目的変数Y2(コンシューマーゲーム)
+Y2 <- data_1[[target_col2]]
 
 # -----------------
 # 主成分分析 (PCA) の実行
@@ -129,7 +132,7 @@ print(cluster_profile_pc)
 
 # 3. スマホゲーム利用率の比較と検定
 # 目的変数の変数名
-target_col <- "Play_SP_Game"
+# target_col <- "Play_SP_Game"
 
 # クラスターごとのスマホゲーム利用率の計算 (0/1データの平均値が利用率になります)
 print("--- クラスターごとのスマホゲーム利用率 ---")
@@ -142,5 +145,20 @@ print(utilization_rate)
 # 統計的有意差の検定 (ANOVA)
 # 利用率に統計的な差があるかを確認します。p値が0.05未満なら有意な差あり。
 print("--- クラスター間の利用率の統計的検定 (ANOVA) ---")
-aov_result <- aov(data_1[[target_col]] ~ cluster, data = data_1)
+aov_result <- aov(data_1[[target_col2]] ~ cluster, data = data_1)
+summary(aov_result)
+
+# 有意な感じではなかったのでコンシューマーゲームでもやってみる
+# クラスターごとのスマホゲーム利用率の計算 (0/1データの平均値が利用率になります)
+print("--- クラスターごとのスマホゲーム利用率 ---")
+utilization_rate <- aggregate(data_1[[target_col2]], 
+                              by = list(Cluster = data_1$cluster), 
+                              FUN = mean)
+colnames(utilization_rate) <- c("Cluster", "Play_Console_Game_Rate")
+print(utilization_rate)
+
+# 統計的有意差の検定 (ANOVA)
+# 利用率に統計的な差があるかを確認します。p値が0.05未満なら有意な差あり。
+print("--- クラスター間の利用率の統計的検定 (ANOVA) ---")
+aov_result <- aov(data_1[[target_col2]] ~ cluster, data = data_1)
 summary(aov_result)
