@@ -9,7 +9,7 @@ df <- exceldata[exceldata[, 5]=="遊ぶ", -5]
 
 # ダミー変数化
 df$Purchased_Paid_SPG <- as.numeric(df$Purchased_Paid_SPG == "ある")
-df$Made_InApp_Purchase <- as.numeric(df$Made_InApp_Purchase == "ない")
+df$Made_InApp_Purchase <- as.numeric(df$Made_InApp_Purchase == "ある")
 df$Impact_Oshi_Character <- as.numeric(df$Impact_Oshi_Character == "いる")
 df$Play_on_Tablet <- as.numeric(df$Play_on_Tablet == "遊ぶ")
 df$Play_Console <- as.numeric(df$Play_Console == "はい")
