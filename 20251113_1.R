@@ -1,11 +1,11 @@
 # 20251113_1_Play_SP_Game_魅力の主成分分析
 
 library(readxl)
-exceldata_2 <- read_excel("data/data_2.xlsx", sheet = "Sheet1")
+exceldata_2 <- read_excel("data/data_3.xlsx")
 View(exceldata_2)
 
 
-df <- exceldata_2[24:37]
+df <- exceldata_2[24:37] # ここ変わってるはずだから変更する
 
 # 主成分分析
 ## result <- prcomp(df, scale = TRUE)
@@ -16,13 +16,16 @@ df <- exceldata_2[24:37]
 # install.packages("psych")
 library(psych)
 
-# 主成分法 (fm="pa" - Principal Axis Factor Analysisもよく使われます)
-# 抽出方法: "pc" (主成分分析) 
+# 固有値の確認（これで因子の数を決める？）
+eigen_values <- eigen(cor(df))$values
+eigen_values
+
+# 抽出方法: "pa" (主成分分析) 
 # 因子数: nfactors=4 (4因子を抽出)
 # 回転方法: rotate="varimax" (直交回転のバリマックス)
 fa_result <- fa(r = df, 
                 nfactors = 4, 
-                fm = "pc", 
+                fm = "pa", 
                 rotate = "varimax")
 
 # 結果の表示
@@ -34,6 +37,46 @@ fa.diagram(fa_result, cut = 0.3)
 
 # 因子得点
 factor_scores <- fa_result$scores
+
+# 因子負荷量のヒートマップ
+# 必要なパッケージ
+library(ggplot2)
+library(reshape2)
+
+# 因子負荷量を抽出（loadings を数値行列として取り出す）
+loadings <- as.data.frame(unclass(fa_result$loadings))
+
+# 因子（列）を指定（MR1〜MR4を使用）
+loadings <- loadings[, 1:4]
+
+# 項目名を列に追加
+loadings$item <- rownames(loadings)
+
+# long形式に変換（ggplot用）
+df_plot <- melt(loadings, id = "item")
+
+# ヒートマップ描画
+ggplot(df_plot, aes(x = variable, y = item, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "blue",
+    mid = "white",
+    high = "red",
+    midpoint = 0,
+    limits = c(-1, 1)
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  ) +
+  labs(
+    title = "因子負荷量ヒートマップ",
+    fill = "負荷量"
+  )
+
+
 
 # クラスター分析
 
@@ -57,7 +100,7 @@ plot(1:15, wss, type = "b",
 ## 3か4かなぁ
 
 # K=3でK-meansを実行 (最適なKはエルボー法の結果に基づいて変更してください)
-final_k <- 4
+final_k <- 3
 set.seed(123) # 結果の再現性を確保するためにシードを設定
 kmeans_final <- kmeans(factor_scores, centers = final_k, nstart = 25)
 
@@ -89,7 +132,7 @@ combined_data_final <- data.frame(
 print("--- クラスターごとの課金率 ---")
 print("--- クラスターごとの課金率 ---")
 utilization_rate <- aggregate(
-  x = combined_data_final$Made_InApp_Purchase,  # 課金フラグのベクトル
+  x = combined_data_final$Payment_Flag,  # 課金フラグのベクトル
   by = list(Cluster = combined_data_final$Cluster), # クラスター番号のベクトルでグループ化
   FUN = mean # 平均（＝課金率）を計算
 )
@@ -98,7 +141,9 @@ print(utilization_rate)
 
 
 # combined_data_final の Play_Time_Category 列を使ってクロス集計と検定を実行
-exceldata_2 <- cbind(exceldata_2, cluster_assignment)
+exceldata_2$cluster_assignment <- kmeans_final$cluster
+
+# exceldata_2 <- cbind(exceldata_2, cluster_assignment)
 
 print("--- クラスターとプレイ時間のクロス集計表 ---")
 # 1. クロス集計表（分割表）の作成
@@ -112,3 +157,26 @@ print(contingency_table_time)
 chi_sq_test_time <- chisq.test(contingency_table_time)
 print("--- カイ二乗検定の結果 ---")
 print(chi_sq_test_time)
+
+
+# クラスターのプロット
+library(plotly)
+
+# 因子スコア + クラスター列が入っている前提
+# factor_scores_with_cluster <- data.frame(factor_scores[,1:3], 
+#                                          Cluster = kmeans_final$cluster)
+
+fig <- plot_ly(factor_scores_with_cluster, 
+               x = ~PA1, y = ~PA2, z = ~PA3,
+               color = ~factor(Cluster),          # クラスターで色分け
+               colors = c("red","blue","green"),  # 色を3クラスタに対応
+               type = "scatter3d", mode = "markers",
+               marker = list(size = 5))           # マーカーは全部同じ
+
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'PA1'),
+                                   yaxis = list(title = 'PA2'),
+                                   zaxis = list(title = 'PA3')),
+                      legend = list(title = list(text='Cluster')))
+
+fig
+

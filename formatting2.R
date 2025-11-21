@@ -1,7 +1,8 @@
 # formatting2_Play_SP_Game_formatting
 
 library(readxl)
-exceldata <- read_excel("data/exceldata_158_1109.xlsx", sheet = "sheet1_2_SPGame")
+# exceldata <- read_excel("data/exceldata_158_1109.xlsx", sheet = "sheet1_2_SPGame")
+exceldata <- read_excel("data/exceldata_170_1119.xlsx", sheet = "Sheet1")
 View(exceldata)
 
 # ゲームで遊ぶ人の回答を抽出
@@ -48,11 +49,12 @@ importance_map <- c("全く思わない", "あまり思わない", "思う", "�
 df <- df %>%
   mutate(
     across(
-      .cols = c(20:37),
+      .cols = c(22:39),
       .fns = ~ as.numeric(factor(., levels = importance_map)) - 1
     )
   )
 
 # 出力
 library(writexl)
-write_xlsx(df, "data/data_2.xlsx")
+# write_xlsx(df, "data/data_2.xlsx")
+write_xlsx(df, "data/data_3.xlsx")
