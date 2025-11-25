@@ -1,8 +1,9 @@
 # 全員回答のデータの整形
 
 library(readxl)
-df <- read_excel("data/exceldata_158_1109.xlsx", 
-                                 sheet = "sheet1_1_全員回答")
+# df <- read_excel("data/exceldata_158_1109.xlsx", sheet = "sheet1_1_全員回答")
+df <- read_excel("data/exceldata_170_1119.xlsx", sheet = "Sheet1")
+
 View(df)
 
 # 整形
@@ -65,7 +66,7 @@ df <- df %>%
   mutate(
     across(
       # 列の範囲を「開始列名:終了列名」で指定
-      `ゲーム（スマホ利用）`:`その他アウトドアの趣味`, 
+      Game_SP:Hobby_Outdoor, 
       # 適用する関数を指定 (現在の列の値から1を引く)
       ~ .x - 1
     )
@@ -79,4 +80,4 @@ df$`あなたはスマートフォンゲームで遊びますか。` <- as.numer
 # install.packages("writexl")
 # 出力
 library(writexl)
-write_xlsx(df, "data/data_1.xlsx")
+write_xlsx(df, "data/data_4.xlsx")

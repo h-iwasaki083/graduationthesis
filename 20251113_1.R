@@ -132,7 +132,7 @@ combined_data_final <- data.frame(
 print("--- クラスターごとの課金率 ---")
 print("--- クラスターごとの課金率 ---")
 utilization_rate <- aggregate(
-  x = combined_data_final$Payment_Flag,  # 課金フラグのベクトル
+  x = combined_data_final$Made_InApp_Purchase,  # 課金フラグのベクトル
   by = list(Cluster = combined_data_final$Cluster), # クラスター番号のベクトルでグループ化
   FUN = mean # 平均（＝課金率）を計算
 )

@@ -4,7 +4,7 @@
 
 # データの読み込み
 library(readxl)
-data_1 <- read_excel("data/data_1.xlsx")
+data_1 <- read_excel("data/data_4.xlsx")
 View(data_1)
 
 
