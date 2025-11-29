@@ -71,4 +71,79 @@ ggplot(df_plot, aes(x = variable, y = item, fill = value)) +
 
 # クラスター分析
 
+# --- 最適なクラスター数の決定（エルボー法） ---
+# Kの数に応じたWSS (Within-Cluster Sum of Squares)を格納するベクトル
+wss <- numeric(15)
 
+# K=1からK=15までK-meansを実行し、WSSを計算
+for (k in 1:15) {
+  # nstart=25 は、初期値のランダムな選び方による影響を減らすため、25回繰り返す設定
+  kmeans_result <- kmeans(factor_scores, centers = k, nstart = 25)
+  wss[k] <- kmeans_result$tot.withinss
+}
+
+# エルボー法のプロット
+plot(1:15, wss, type = "b", 
+     xlab = "Number of Clusters (K)", 
+     ylab = "Within-Cluster Sum of Squares (WSS)", 
+     main = "Elbow Method for Optimal K")
+# [Image of Elbow method graph for K-means clustering]
+## 3か4かなぁ
+
+# K=3でK-meansを実行 (最適なKはエルボー法の結果に基づいて変更してください)
+final_k <- 3
+set.seed(123) # 結果の再現性を確保するためにシードを設定
+kmeans_final <- kmeans(factor_scores, centers = final_k, nstart = 25)
+
+# --- 結果の統合 ---
+# 1. 因子得点データにクラスターの割り当てを追加
+factor_scores_with_cluster <- data.frame(factor_scores, 
+                                         Cluster = kmeans_final$cluster)
+
+# 2. 各クラスターの中心（特徴）を抽出
+# これが各クラスターのプロファイルを表します
+cluster_centers <- kmeans_final$centers
+print("--- Cluster Centers (各クラスターの平均因子得点) ---")
+print(cluster_centers)
+
+# 3. 各クラスターのサイズ（人数）を確認
+print("--- Cluster Sizes (各クラスターの人数) ---")
+print(kmeans_final$size)
+
+library(plotly)
+
+# 因子スコア + クラスター列が入っている前提
+df_temp <- as.data.frame(factor_scores[, 1:3])
+df_temp$Cluster <- as.factor(kmeans_final$cluster)
+factor_scores_with_cluster <- df_temp
+factor_scores_with_cluster <- data.frame(factor_scores[,1:3], 
+                                         Cluster = kmeans_final$cluster)
+
+fig <- plot_ly(df_temp, 
+               x = ~MR1, y = ~MR2, z = ~MR3,
+               color = ~factor(Cluster),          # クラスターで色分け
+               colors = c("red","blue","green"),  # 色を3クラスタに対応
+               type = "scatter3d", mode = "markers",
+               marker = list(size = 5))           # マーカーは全部同じ
+
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'MR1'),
+                                   yaxis = list(title = 'MR2'),
+                                   zaxis = list(title = 'MR3')),
+                      legend = list(title = list(text='Cluster')))
+
+fig
+
+# クロス集計
+
+contingency_table_time <- table(exceldata$Play_SP_Game, 
+                                kmeans_final$cluster)
+print(contingency_table_time)
+
+contingency_table_time_2 <- table(exceldata$Play_SP_Game, 
+                                kmeans_final$cluster)
+print(contingency_table_time)
+
+
+chi_sq_test_time <- chisq.test(contingency_table_time)
+print("--- カイ二乗検定の結果 ---")
+print(chi_sq_test_time)
